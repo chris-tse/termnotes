@@ -1,0 +1,20 @@
+{
+  "name": "bun-note",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "build": "bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/tn"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "effect": "^3.17.9"
+  }
+}
