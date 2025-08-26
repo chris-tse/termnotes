@@ -45,7 +45,8 @@ async function main() {
 
   if (showVersion) {
     const packageInfo = await import("../package.json");
-    await $`echo ${packageInfo.default.version}`;
+    // biome-ignore lint/style/noConsoleLog: print version
+    console.log(packageInfo.default.version);
     process.exit(0);
   }
 
