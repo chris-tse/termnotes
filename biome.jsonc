@@ -1,0 +1,14 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+  "extends": ["ultracite"],
+  "javascript": {
+    "formatter": {
+      "lineWidth": 120,
+      "indentStyle": "tab",
+      "indentWidth": 2,
+      "semicolons": "asNeeded",
+      "trailingCommas": "all",
+      "quoteStyle": "single"
+    }
+  }
+}

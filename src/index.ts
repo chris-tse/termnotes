@@ -1,16 +1,33 @@
-// termnotes (tn) — minimal MVP CLI scaffold
-import { $ } from "bun";
-import { parseArgs } from "util";
-import { detectViewer } from "./lib/viewer";
+import { parseArgs } from "node:util";
+// import { Command } from '@effect/cli'
+import Bun from "bun";
+// import { Console } from 'effect'
+import { findHeaderIndices, readFileLines } from "./lib/file";
+import { handleNoteAddition, handleNotes } from "./lib/note";
 import { addTask } from "./lib/task";
-import { readFileLines } from "./lib/file";
+import { isBlank } from "./lib/util";
+import { detectViewer } from "./lib/viewer";
 
 const DEFAULT_NOTES_DIR = `${process.env.HOME}/.termnotes/notes`;
 
-// CLI main using Bun's util.parseArgs
-async function main(): Promise<void> {
+function normalizeBunArgv(): string[] {
+  const argv = [...Bun.argv];
+
+  // If the second element is a bunfs loader path, drop it
+  if (argv[1]?.startsWith("/$bunfs/")) {
+    argv.splice(1, 1);
+  }
+
+  return argv;
+}
+
+// Command.make("tn", {}, () => {
+//   Console.log("tn");
+// });
+
+async function main() {
   const { values, positionals } = parseArgs({
-    args: Bun.argv,
+    args: normalizeBunArgv(),
     strict: true,
     allowPositionals: true,
     options: {
@@ -42,35 +59,24 @@ async function main(): Promise<void> {
     }
     const tasks = await readSection(filePath, "Tasks");
     if (tasks.length === 0) {
-      console.log("(no tasks)");
       process.exit(0);
     }
-    console.log(tasks.join("\n"));
     process.exit(0);
   }
 
+  const deps = {
+    printError,
+    printHelpSummary,
+    showFileWithViewer,
+    readSection,
+  };
+
   if (showNotes) {
-    if (textJoined && textJoined.trim().length > 0) {
-      printError(
-        "-n with text is invalid. To add a note, pass text without -n."
-      );
-      printHelpSummary();
-      process.exit(2);
-    }
-    const notes = await readSection(filePath, "Notes");
-    if (notes.length === 0) {
-      console.log("(no notes)");
-      process.exit(0);
-    }
-    console.log(notes.join("\n"));
-    $`${notes.join("\n")} | glow`;
-    process.exit(0);
+    await handleNotes(filePath, textJoined, deps);
   }
 
   if (textJoined && textJoined.trim().length > 0) {
-    await addNote(filePath, textJoined.trim());
-    await showFileWithViewer(filePath);
-    process.exit(0);
+    await handleNoteAddition(filePath, textJoined, deps);
   }
 
   await showFileWithViewer(filePath);
@@ -80,11 +86,11 @@ async function main(): Promise<void> {
 // printHelp handled manually
 
 function printHelpSummary(): void {
-  console.log("Try 'tn --help' for usage and examples.");
+  return;
 }
 
-function printError(message: string): void {
-  console.error(`Error: ${message}`);
+function printError(_message: string): void {
+  return;
 }
 
 function getTodayDateParts(): { year: number; month: number; day: number } {
@@ -101,7 +107,7 @@ function formatDateYmdLocal(): string {
 
 async function ensureDirectoryExists(dirPath: string): Promise<void> {
   // Using Node fs via Bun compatibility for mkdir -p behavior
-  const fs = await import("fs/promises");
+  const fs = await import("node:fs/promises");
   await fs.mkdir(dirPath, { recursive: true });
 }
 
@@ -110,28 +116,10 @@ async function ensureTodayFile(baseDir: string): Promise<string> {
   const filePath = `${baseDir}/${fileName}`;
   const file = Bun.file(filePath);
   if (!(await file.exists())) {
-    const content = `## Tasks\n\n## Notes\n`;
+    const content = "## Tasks\n\n## Notes\n";
     await Bun.write(filePath, content);
   }
   return filePath;
-}
-
-function isBlank(s?: string): boolean {
-  return (s ?? "").trim() === "";
-}
-
-function findHeaderIndices(lines: string[]): {
-  tasksHeader: number | null;
-  notesHeader: number | null;
-} {
-  let tasksHeader: number | null = null;
-  let notesHeader: number | null = null;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? "";
-    if (line.trim() === "## Tasks" && tasksHeader === null) tasksHeader = i;
-    if (line.trim() === "## Notes" && notesHeader === null) notesHeader = i;
-  }
-  return { tasksHeader, notesHeader };
 }
 
 function sliceSection(
@@ -145,12 +133,16 @@ function sliceSection(
   let section = lines.slice(start, end);
   while (section.length > 0) {
     const first = section[0];
-    if (!isBlank(first)) break;
+    if (!isBlank(first)) {
+      break;
+    }
     section = section.slice(1);
   }
   while (section.length > 0) {
-    const last = section[section.length - 1];
-    if (!isBlank(last)) break;
+    const last = section.at(-1);
+    if (!isBlank(last)) {
+      break;
+    }
     section = section.slice(0, -1);
   }
   return section;
@@ -161,7 +153,9 @@ async function readSection(
   sectionName: "Tasks" | "Notes"
 ): Promise<string[]> {
   let lines = await readFileLines(filePath);
-  if (lines.length === 0) lines = ["## Tasks", "", "## Notes", ""]; // normalize empty file
+  if (lines.length === 0) {
+    lines = ["## Tasks", "", "## Notes", ""]; // normalize empty file
+  }
   const { tasksHeader, notesHeader } = findHeaderIndices(lines);
   if (tasksHeader === null || notesHeader === null) {
     // Rebuild canonical structure
@@ -173,31 +167,8 @@ async function readSection(
   const nHeader = headers.notesHeader as number;
   if (sectionName === "Tasks") {
     return sliceSection(lines, tHeader, nHeader);
-  } else {
-    return sliceSection(lines, nHeader, null);
   }
-}
-
-async function addNote(filePath: string, noteText: string): Promise<void> {
-  if (noteText.trim().length === 0) {
-    throw new Error("Empty text for note");
-  }
-  let lines = await readFileLines(filePath);
-  if (lines.length === 0) lines = ["## Tasks", "", "## Notes", ""]; // normalize
-  const { tasksHeader, notesHeader } = findHeaderIndices(lines);
-  if (tasksHeader === null || notesHeader === null) {
-    lines = ["## Tasks", "", "## Notes", ""];
-    await Bun.write(filePath, lines.join("\n"));
-    return addNote(filePath, noteText);
-  }
-  // Append to end of notes section (end of file)
-  // Ensure a trailing newline before appending if file doesn't end with blank line or the last line is header
-  const last = lines[lines.length - 1];
-  if (!isBlank(last)) {
-    lines.push("");
-  }
-  lines.push(`- ${noteText}`);
-  await Bun.write(filePath, lines.join("\n"));
+  return sliceSection(lines, nHeader, null);
 }
 
 async function showFileWithViewer(filePath: string): Promise<void> {

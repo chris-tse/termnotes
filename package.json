@@ -4,17 +4,22 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "build": "bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/tn",
     "dev": "bun src/index.ts",
-    "build": "bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/tn"
+    "fmt": "ultracite lint && ultracite format"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@biomejs/biome": "2.2.0",
+    "@types/bun": "latest",
+    "ultracite": "5.2.4"
   },
   "peerDependencies": {
     "typescript": "^5.9.2"
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",
+    "@effect/cli": "^0.69.2",
+    "@effect/platform-bun": "^0.79.0",
     "effect": "^3.17.9"
   }
 }
