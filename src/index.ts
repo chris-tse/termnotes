@@ -44,10 +44,15 @@ async function main() {
     positionals.length > 2 ? positionals.slice(2).join(" ") : null;
 
   if (showVersion) {
-    const packageInfo = await import("../package.json");
-    // biome-ignore lint/style/noConsoleLog: print version
-    console.log(packageInfo.default.version);
-    process.exit(0);
+    try {
+      const packageInfo = await import("../package.json");
+      // biome-ignore lint/style/noConsoleLog: print version
+      console.log(packageInfo.default.version);
+      process.exit(0);
+    } catch (err) {
+      console.error(err);
+      process.exit(1);
+    }
   }
 
   if (showTasks && showNotes) {
