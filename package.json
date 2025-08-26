@@ -1,6 +1,6 @@
 {
   "name": "@bunkalabs/termnotes",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Zero-config daily notes and tasks CLI for your terminal",
   "main": "src/index.ts",
   "bin": {

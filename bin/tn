@@ -1,5 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bun
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
-# TermNotes CLI - runs with Bun
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec bun run "$SCRIPT_DIR/../src/index.ts" "$@"
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const entry = resolve(__dirname, "../src/index.ts");
+
+await import(entry);
