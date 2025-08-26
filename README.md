@@ -2,17 +2,18 @@
 
 Zero-config daily notes and tasks CLI for your terminal. Each day is a Markdown file with `## Tasks` and `## Notes`.
 
-## Setup (dev)
-- Install deps:
+## Installation
+
+Requires [Bun](https://bun.sh) runtime.
+
 ```bash
-bun install
-```
-- Run:
-```bash
-bun run dev -- --help
+npm install -g @bunkalabs/termnotes
+pnpm install -g @bunkalabs/termotes
+bun add -g @bunkalabs/termnotes
 ```
 
 ## Usage (MVP)
+
 ```bash
 # Show today’s file (prefers glow → bat → cat)
 tn
@@ -31,9 +32,25 @@ tn -n
 tn -t -- "task starting with - or --"
 ```
 
+## Setup (dev)
+
+- Install deps:
+
+```bash
+bun install
+```
+
+- Run:
+
+```bash
+bun run dev -- --help
+```
+
 ## Defaults
+
 - Notes directory: `~/.termnotes/notes`
-- Alias: primary `tn` (fallback `qn`)
+- Alias: primary `tn`
 
 ## License
+
 MIT

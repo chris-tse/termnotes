@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# TermNotes CLI - runs with Bun
+exec bun run "$(dirname "$0")/../src/index.ts" "$@"

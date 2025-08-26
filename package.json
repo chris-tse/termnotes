@@ -1,13 +1,47 @@
 {
-  "name": "bun-note",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "build": "bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile dist/tn",
-    "dev": "bun src/index.ts",
-    "fmt": "ultracite lint && ultracite format"
+  "name": "@bunkalabs/termnotes",
+  "version": "0.1.0",
+  "description": "Zero-config daily notes and tasks CLI for your terminal",
+  "main": "src/index.ts",
+  "bin": {
+    "tn": "bin/tn",
+    "termnotes": "bin/tn"
   },
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build step needed - shipping TypeScript source'",
+    "dev": "bun src/index.ts",
+    "fmt": "ultracite lint && ultracite format",
+    "test:cli": "bun run src/index.ts --help"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "lib/",
+    "README.md",
+    "package.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chris-tse/termnotes.git"
+  },
+  "homepage": "https://github.com/chris-tse/termnotes",
+  "bugs": {
+    "url": "https://github.com/chris-tse/termnotes/issues"
+  },
+  "keywords": [
+    "cli",
+    "notes",
+    "tasks",
+    "terminal",
+    "productivity",
+    "markdown"
+  ],
+  "author": "Chris Tse",
+  "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
     "@types/bun": "latest",

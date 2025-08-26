@@ -1,0 +1,39 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., 1.2.3)"
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Verify source files
+        run: |
+          ls -la src/
+          bun run src/index.ts --help
+
+      - name: Run release script
+        run: bun run script/release.ts
+        env:
+          OPENCODE_VERSION: ${{ inputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
