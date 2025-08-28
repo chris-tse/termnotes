@@ -1,6 +1,29 @@
 import Bun from "bun";
 import { findHeaderIndices, readFileLines } from "./file";
 import { isBlank } from "./util";
+import { Console, Effect } from "effect";
+import { FileStore } from "./file-store";
+import { addTask } from "./document";
+
+export class Task extends Effect.Service<Task>()("tn/Task", {
+  effect: Effect.gen(function* () {
+    const addTask = (taskText: string) =>
+      Effect.gen(function* () {
+        if (taskText.trim().length === 0) {
+          return yield* Console.error("Empty text for task");
+        }
+
+        const store = yield* FileStore;
+        const { path, doc } = yield* store.loadTodayDocument;
+        const next = yield* addTask(taskText);
+        yield* store.saveDocument(path, next);
+
+        return yield* Console.log("addTask", taskText);
+      });
+
+    return { addTask } as const;
+  }),
+}) {}
 
 export async function addTask(
   filePath: string,

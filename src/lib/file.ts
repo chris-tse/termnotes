@@ -1,4 +1,29 @@
+// NOTE TO AGENT: still needs to be converted to Effect
+
 import Bun from "bun";
+
+function getTodayDateParts(): { year: number; month: number; day: number } {
+  const d = new Date();
+  return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
+}
+
+function formatDateYmdLocal(): string {
+  const { year, month, day } = getTodayDateParts();
+  const mm = String(month).padStart(2, "0");
+  const dd = String(day).padStart(2, "0");
+  return `${year}-${mm}-${dd}`;
+}
+
+async function ensureTodayFile(baseDir: string): Promise<string> {
+  const fileName = `${formatDateYmdLocal()}.md`;
+  const filePath = `${baseDir}/${fileName}`;
+  const file = Bun.file(filePath);
+  if (!(await file.exists())) {
+    const content = "## Tasks\n\n## Notes\n";
+    await Bun.write(filePath, content);
+  }
+  return filePath;
+}
 
 export async function readFileLines(filePath: string): Promise<string[]> {
   const text = await Bun.file(filePath).text();

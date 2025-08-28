@@ -21,5 +21,10 @@
       "@/lib/*": ["src/lib/*"]
     },
     "strictNullChecks": true
-  }
+  },
+  "plugins": [
+    {
+      "name": "@effect/language-service",
+    }
+  ]
 }
