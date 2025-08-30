@@ -1,32 +1,23 @@
 import { Context, Effect, Equal, Layer } from "effect";
 import { Command } from "@effect/platform";
-import type { PlatformError } from "@effect/platform/Error";
-import type { CommandExecutor } from "@effect/platform/CommandExecutor";
+import { BunContext } from "@effect/platform-bun";
 
 export class Config extends Context.Tag("Config")<
   Config,
   {
-    readonly getConfig: Effect.Effect<
-      {
-        readonly notesDir: string;
-        readonly viewer: "glow" | "bat" | "cat";
-      },
-      PlatformError,
-      CommandExecutor
-    >;
+    readonly notesDir: string;
+    readonly viewer: "glow" | "bat" | "cat";
   }
 >() {}
 
-export const ConfigLive = Layer.succeed(
+export const ConfigLive = Layer.effect(
   Config,
-  Config.of({
-    getConfig: Effect.gen(function* () {
-      const notesDir = `${process.env.HOME}/.termnotes/notes`;
-      const viewer = yield* detectViewer;
-      return { notesDir, viewer } as const;
-    }),
+  Effect.gen(function* () {
+    const notesDir = `${process.env.HOME}/.termnotes/notes`;
+    const viewer = yield* detectViewer;
+    return { notesDir, viewer } as const;
   })
-);
+).pipe(Layer.provide(BunContext.layer));
 
 const commandExists = (cmd: string) =>
   Effect.gen(function* () {

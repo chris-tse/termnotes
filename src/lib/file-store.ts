@@ -6,38 +6,50 @@ import { parseDocument, renderDocument, type Document } from "./document";
 export class FileStore extends Effect.Service<FileStore>()("tn/FileStore", {
   effect: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
-    const { getConfig } = yield* Config;
 
-    const ensureTodayFile = Effect.gen(function* () {
-      const config = yield* getConfig;
-      yield* fs.makeDirectory(config.notesDir, { recursive: true });
+    return {
+      ensureTodayFile: Effect.gen(function* () {
+        const config = yield* Config;
+        yield* fs.makeDirectory(config.notesDir, { recursive: true });
 
-      const nowMs = yield* Clock.currentTimeMillis;
-      const now = new Date(nowMs);
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, "0");
-      const dd = String(now.getDate()).padStart(2, "0");
-      const filePath = `${config.notesDir}/${yyyy}-${mm}-${dd}.md`;
+        const nowMs = yield* Clock.currentTimeMillis;
+        const now = new Date(nowMs);
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const filePath = `${config.notesDir}/${yyyy}-${mm}-${dd}.md`;
 
-      if (!(yield* fs.exists(filePath))) {
-        yield* fs.writeFileString(filePath, "## Tasks\n\n## Notes\n");
-      }
-      return filePath;
-    });
+        if (!(yield* fs.exists(filePath))) {
+          yield* fs.writeFileString(filePath, "## Tasks\n\n## Notes\n");
+        }
+        return filePath;
+      }).pipe(Effect.withSpan("ensureTodayFile")),
 
-    const loadTodayDocument = Effect.gen(function* () {
-      const path = yield* ensureTodayFile;
-      const text = yield* fs.readFileString(path);
-      const doc = yield* parseDocument(text);
-      return { path, doc } as const;
-    });
+      loadTodayDocument: Effect.gen(function* () {
+        const config = yield* Config;
+        yield* fs.makeDirectory(config.notesDir, { recursive: true });
 
-    const saveDocument = (path: string, doc: Document) =>
-      Effect.gen(function* () {
-        const content = yield* renderDocument(doc);
-        return yield* fs.writeFileString(path, content);
-      });
+        const nowMs = yield* Clock.currentTimeMillis;
+        const now = new Date(nowMs);
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        const filePath = `${config.notesDir}/${yyyy}-${mm}-${dd}.md`;
 
-    return { ensureTodayFile, loadTodayDocument, saveDocument } as const;
+        if (!(yield* fs.exists(filePath))) {
+          yield* fs.writeFileString(filePath, "## Tasks\n\n## Notes\n");
+        }
+
+        const text = yield* fs.readFileString(filePath);
+        const doc = yield* parseDocument(text);
+        return { path: filePath, doc };
+      }).pipe(Effect.withSpan("loadTodayDocument")),
+
+      saveDocument: (path: string, doc: Document) =>
+        Effect.gen(function* () {
+          const content = yield* renderDocument(doc);
+          return yield* fs.writeFileString(path, content);
+        }),
+    };
   }),
 }) {}

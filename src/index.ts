@@ -1,15 +1,18 @@
+import Bun from "bun";
+import { Console, Effect, Layer } from "effect";
 import { Args, Command } from "@effect/cli";
-import Bun, { argv } from "bun";
-import { Effect, Layer } from "effect";
-import { BunContext, BunRuntime } from "@effect/platform-bun";
+import { DevTools } from "@effect/experimental";
+import { BunContext, BunRuntime, BunSocket } from "@effect/platform-bun";
 import { FileStore } from "./lib/file-store";
 import { ConfigLive } from "./lib/config";
-import { reduceDocument, renderDocument } from "./lib/document";
+import { reduceDocument } from "./lib/document";
+import { Viewer } from "./lib/viewer";
 
 const packageInfo = await import("../package.json");
 
 function normalizeBunArgv(): string[] {
   const argv = [...Bun.argv];
+  console.log(argv);
 
   // If the second element is a bunfs loader path, drop it
   if (argv[1]?.startsWith("/$bunfs/")) {
@@ -21,21 +24,66 @@ function normalizeBunArgv(): string[] {
 
 const text = Args.text({ name: "text" }).pipe(Args.atLeast(1));
 
-const taskCommand = Command.make("task", { text }, ({ text }) => {
-  return Effect.gen(function* () {
+const handleTask = (text: string[]) =>
+  Effect.gen(function* () {
     const store = yield* FileStore;
+    const viewer = yield* Viewer;
     const { path, doc } = yield* store.loadTodayDocument;
     const next = yield* reduceDocument(doc, {
       _tag: "AddTask",
       text: text.join(" "),
     });
     yield* store.saveDocument(path, next);
-    const out = yield* renderDocument(next);
-    return yield* Effect.sync(() => process.stdout.write(out));
-  }).pipe(Effect.provide(FileStore.Default));
+    yield* viewer.showFile(path);
+  }).pipe(Effect.provide(FileStore.Default), Effect.provide(Viewer.Default));
+
+const taskCommand = Command.make("task", { text }, ({ text }) => {
+  return handleTask(text);
 });
 
-const command = Command.make("tn").pipe(Command.withSubcommands([taskCommand]));
+const taskShortCommand = Command.make("t", { text }, ({ text }) => {
+  return handleTask(text);
+});
+
+const handleNote = (text: string[]) =>
+  Effect.gen(function* () {
+    const store = yield* FileStore;
+    const viewer = yield* Viewer;
+    const { path, doc } = yield* store.loadTodayDocument;
+    const next = yield* reduceDocument(doc, {
+      _tag: "AddNote",
+      text: text.join(" "),
+    });
+    yield* store.saveDocument(path, next);
+    yield* viewer.showFile(path);
+  }).pipe(Effect.provide(FileStore.Default), Effect.provide(Viewer.Default));
+
+const noteCommand = Command.make("note", { text }, ({ text }) => {
+  return handleNote(text);
+});
+
+const noteShortCommand = Command.make("n", { text }, ({ text }) => {
+  return handleNote(text);
+});
+
+const command = Command.make("tn", {}, () => {
+  return Effect.gen(function* () {
+    yield* Console.log("bun");
+    const store = yield* FileStore;
+    const viewer = yield* Viewer;
+    yield* store.ensureTodayFile;
+    const { path } = yield* store.loadTodayDocument;
+    yield* viewer.showFile(path);
+    Effect.die("done");
+  }).pipe(Effect.provide(FileStore.Default), Effect.provide(Viewer.Default));
+}).pipe(
+  Command.withSubcommands([
+    taskCommand,
+    taskShortCommand,
+    noteCommand,
+    noteShortCommand,
+  ])
+);
 
 const cli = Command.run(command, {
   name: "tn - TermNotes CLI",
@@ -43,8 +91,15 @@ const cli = Command.run(command, {
 });
 
 const AppLayer = Layer.mergeAll(BunContext.layer, ConfigLive);
+const DevToolsLive = DevTools.layerWebSocket().pipe(
+  Layer.provide(BunSocket.layerWebSocketConstructor)
+);
 
-cli(normalizeBunArgv()).pipe(Effect.provide(AppLayer), BunRuntime.runMain);
+cli(normalizeBunArgv()).pipe(
+  Effect.provide(AppLayer),
+  Effect.provide(DevToolsLive),
+  BunRuntime.runMain
+);
 
 // async function main() {
 //   const { values, positionals } = parseArgs({

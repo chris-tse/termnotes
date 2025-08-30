@@ -1,23 +1,28 @@
-// NOTE TO AGENT: still needs to be converted to Effect
+import { Console, Effect } from "effect";
+import { Command } from "@effect/platform";
+import { Config, ConfigLive } from "./config";
 
-import Bun from "bun";
+export class Viewer extends Effect.Service<Viewer>()("tn/Viewer", {
+  effect: Effect.gen(function* () {
+    const config = yield* Config;
 
-export async function detectViewer(): Promise<"glow" | "bat" | "cat"> {
-  if (await commandExists(["glow", "--version"])) {
-    return "glow";
-  }
-  if (await commandExists(["bat", "--version"])) {
-    return "bat";
-  }
-  return "cat";
-}
+    const showFile = (path: string) =>
+      Effect.gen(function* () {
+        const args = config.viewer === "bat" ? ["--style=plain", path] : [path];
+        const command = Command.make(config.viewer, ...args).pipe(
+          Command.stdin("inherit"),
+          Command.stdout("inherit"),
+          Command.stderr("inherit")
+        );
 
-async function commandExists(cmd: string[]): Promise<boolean> {
-  try {
-    const proc = Bun.spawn({ cmd, stdout: "ignore", stderr: "ignore" });
-    await proc.exited;
-    return proc.exitCode === 0;
-  } catch {
-    return false;
-  }
-}
+        yield* Command.exitCode(command);
+      }).pipe(
+        Effect.catchAll(() => Console.log("showFile failed")),
+        Effect.withSpan("showFile")
+      );
+
+    return { showFile } as const;
+  }),
+
+  dependencies: [ConfigLive],
+}) {}

@@ -27,6 +27,7 @@
 ### Code Patterns
 
 - **Imports**: External libraries first, then relative imports
+- prefer named imports/exports over default imports or namespace imports
 - **Naming**: camelCase for functions/variables, PascalCase for types, kebab-case for file names
 - **Error handling**: Throw errors for invalid states, use Effect for side effects
 - use comments sparingly only when needed to explain something not otherwise obvious
