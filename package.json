@@ -12,6 +12,8 @@
     "build": "rm -rf dist && rolldown src/index.ts --dir dist --minify",
     "dev": "bun src/index.ts",
     "fmt": "ultracite lint && ultracite format",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:cli": "bun run src/index.ts --help"
   },
   "engines": {
@@ -45,9 +47,11 @@
     "@biomejs/biome": "2.2.0",
     "@effect/experimental": "^0.54.6",
     "@effect/language-service": "^0.36.0",
+    "@effect/vitest": "^0.25.1",
     "@types/bun": "latest",
     "rolldown": "^1.0.0-beta.34",
-    "ultracite": "5.2.4"
+    "ultracite": "5.2.4",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "typescript": "^5.9.2"

@@ -1,6 +1,6 @@
 import { Console, Effect } from "effect";
 import { Command } from "@effect/platform";
-import { Config, ConfigLive } from "./config";
+import { Config } from "./config";
 
 export class Viewer extends Effect.Service<Viewer>()("tn/Viewer", {
   effect: Effect.gen(function* () {
@@ -17,12 +17,12 @@ export class Viewer extends Effect.Service<Viewer>()("tn/Viewer", {
 
         yield* Command.exitCode(command);
       }).pipe(
-        Effect.catchAll(() => Console.log("showFile failed")),
+        Effect.catchAll((e) => Console.log(`showFile failed: ${String(e)}`)),
         Effect.withSpan("showFile")
       );
 
     return { showFile } as const;
   }),
 
-  dependencies: [ConfigLive],
+  dependencies: [Config.Default],
 }) {}

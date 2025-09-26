@@ -1,37 +1,40 @@
-import { Context, Effect, Equal, Layer } from "effect";
+import { homedir } from "node:os";
+import { Effect } from "effect";
 import { Command } from "@effect/platform";
 import { BunContext } from "@effect/platform-bun";
+import { CommandChecker } from "./command-checker";
 
-export class Config extends Context.Tag("Config")<
-  Config,
-  {
-    readonly notesDir: string;
-    readonly viewer: "glow" | "bat" | "cat";
-  }
->() {}
-
-export const ConfigLive = Layer.effect(
-  Config,
-  Effect.gen(function* () {
-    const notesDir = `${process.env.HOME}/.termnotes/notes`;
-    const viewer = yield* detectViewer;
+export class Config extends Effect.Service<Config>()("tn/Config", {
+  effect: Effect.gen(function* () {
+    const notesDir = yield* getNotesDir;
+    const viewer = yield* detectViewer();
     return { notesDir, viewer } as const;
-  })
-).pipe(Layer.provide(BunContext.layer));
+  }),
+  dependencies: [BunContext.layer, CommandChecker.Default],
+}) {}
 
-const commandExists = (cmd: string) =>
-  Effect.gen(function* () {
-    const command = Command.make(cmd, "--version");
-    const exitCode = yield* Command.exitCode(command);
+const getNotesDir = Effect.fn("getNotesDir")(function* () {
+  // TODO: implement configuring this
+  return `${homedir()}/.termnotes/notes`;
+})();
 
-    return Equal.equals(exitCode, 0);
-  });
+export const commandExists = Effect.fn("commandExists")(function* (
+  cmd: string
+) {
+  const command = Command.make(cmd, "--version");
+  const exitCode = yield* Command.exitCode(command).pipe(
+    Effect.catchAll(() => Effect.succeed(1))
+  );
+  return exitCode === 0;
+},
+Effect.provide(BunContext.layer));
 
-const detectViewer = Effect.gen(function* () {
-  if (yield* commandExists("glow")) {
+export const detectViewer = Effect.fn("detectViewer")(function* () {
+  const checker = yield* CommandChecker;
+  if (yield* checker.commandExists("glow")) {
     return "glow";
   }
-  if (yield* commandExists("bat")) {
+  if (yield* checker.commandExists("bat")) {
     return "bat";
   }
   return "cat";
