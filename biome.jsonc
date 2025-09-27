@@ -1,8 +1,8 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
   "extends": ["ultracite"],
   "files": {
-    "includes": ["package.json", "README.md", "src/*"]
+    "includes": ["package.json", "README.md", "src"]
   },
   "javascript": {
     "formatter": {
@@ -12,6 +12,26 @@
       "semicolons": "asNeeded",
       "trailingCommas": "all",
       "quoteStyle": "single"
+    }
+  },
+  "linter": {
+    "rules": {
+      "complexity": {
+        "useArrowFunction": "off"
+      }
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+
+          "options": {
+            "groups": [":BUN:", ":NODE:", "effect", "@effect/*"]
+          }
+        }
+      }
     }
   }
 }
