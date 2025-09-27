@@ -3,6 +3,6 @@ import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const entry = resolve(__dirname, "../src/index.ts");
+const entry = resolve(__dirname, "../dist/index.js");
 
 await import(entry);
