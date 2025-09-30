@@ -1,6 +1,6 @@
 import Bun from 'bun'
 import { Console, Effect, Layer } from 'effect'
-import { Args, Command } from '@effect/cli'
+import { Args, CliConfig, Command, HelpDoc } from '@effect/cli'
 import { DevTools } from '@effect/experimental'
 import { BunContext, BunRuntime, BunSocket } from '@effect/platform-bun'
 import { Config } from '@/lib/config'
@@ -38,9 +38,13 @@ const handleTask = Effect.fn('handleTask')(
 
 const restInputText = Args.text({ name: 'text' }).pipe(Args.atLeast(1))
 
-const taskCommand = Command.make('task', { restInputText }, ({ restInputText: text }) => handleTask(text))
+const taskCommand = Command.make('task', { restInputText }, ({ restInputText: text }) => handleTask(text)).pipe(
+	Command.withDescription('Append a task'),
+)
 
-const taskShortCommand = Command.make('t', { restInputText }, ({ restInputText: text }) => handleTask(text))
+const taskShortCommand = Command.make('t', { restInputText }, ({ restInputText: text }) => handleTask(text)).pipe(
+	Command.withDescription('Append a task'),
+)
 
 const handleNote = Effect.fn('handleNote')(
 	function* (text: string[]) {
@@ -58,9 +62,13 @@ const handleNote = Effect.fn('handleNote')(
 	Effect.provide(Viewer.Default),
 )
 
-const noteCommand = Command.make('note', { restInputText }, ({ restInputText: text }) => handleNote(text))
+const noteCommand = Command.make('note', { restInputText }, ({ restInputText: text }) => handleNote(text)).pipe(
+	Command.withDescription('Append a note bullet'),
+)
 
-const noteShortCommand = Command.make('n', { restInputText }, ({ restInputText: text }) => handleNote(text))
+const noteShortCommand = Command.make('n', { restInputText }, ({ restInputText: text }) => handleNote(text)).pipe(
+	Command.withDescription('Append a note bullet'),
+)
 
 const handleToggle = Effect.fn('handleToggle')(
 	function* (index: number) {
@@ -80,7 +88,9 @@ const handleToggle = Effect.fn('handleToggle')(
 	Effect.provide(Viewer.Default),
 )
 
-const toggleCommand = Command.make('x', { index: Args.integer({ name: 'index' }) }, ({ index }) => handleToggle(index))
+const toggleCommand = Command.make('x', { index: Args.integer({ name: 'index' }) }, ({ index }) =>
+	handleToggle(index),
+).pipe(Command.withDescription('Toggle task status at 1-based index'))
 
 const command = Command.make(
 	'tn',
@@ -96,7 +106,16 @@ const command = Command.make(
 		Effect.provide(FileStore.Default),
 		Effect.provide(Viewer.Default),
 	),
-).pipe(Command.withSubcommands([taskCommand, taskShortCommand, noteCommand, noteShortCommand, toggleCommand]))
+).pipe(
+	Command.withSubcommands([taskCommand, taskShortCommand, noteCommand, noteShortCommand, toggleCommand]),
+	Command.withDescription(
+		HelpDoc.blocks([
+			HelpDoc.p(
+				'Zero‑config daily notes + tasks in your terminal. Each day is one Markdown file with two sections: Tasks and Notes',
+			),
+		]),
+	),
+)
 
 const cli = Command.run(command, {
 	name: 'tn - TermNotes CLI',
@@ -109,6 +128,7 @@ const DevToolsLive = DevTools.layerWebSocket().pipe(Layer.provide(BunSocket.laye
 cli(normalizeBunArgv()).pipe(
 	Effect.provide(AppLayer),
 	Effect.provide(DevToolsLive),
+	Effect.provide(CliConfig.layer({ showBuiltIns: false })),
 	Effect.tapErrorCause((cause) => Console.warn(`Error: ${String(cause)}`)),
 	BunRuntime.runMain,
 )

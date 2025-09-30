@@ -1,10 +1,14 @@
 # termnotes (tn)
 
-Zero-config daily notes and tasks CLI for your terminal. Each day is a Markdown file with `## Tasks` and `## Notes`.
+![npm](https://img.shields.io/npm/v/termnotes-cli?logo=npm)
+![Bun](https://img.shields.io/badge/Bun-powered-orange?logo=bun&logoColor=white)
+![License](https://img.shields.io/github/license/chris-tse/termnotes)
+
+Zero‑config daily notes + tasks in your terminal.
+Each day is one Markdown file with two sections: Tasks and Notes
 
 ## Installation
-
-Requires [Bun](https://bun.sh) runtime.
+Requires [Bun](https://bun.sh).
 
 ```bash
 npm install -g termnotes-cli
@@ -12,80 +16,65 @@ pnpm install -g termnotes-cli
 bun add -g termnotes-cli
 ```
 
-## Usage
-
-Both `tn` and `termnotes` CLI entrypoints are available:
-
-```bash
-# Show help
-tn --help
-termnotes --help
-```
-
-### Show today's notes
-Run `tn` to show the day's notes. If it's the first time you've run this on a day, it will create a new empty set of notes.
-```bash
-tn
-
-# Output (starts day with empty template)
-# ## Tasks
-#
-# ## Notes
-#
-```
-
-### Create a task
-Use the `task` action or shorthand `t` to append a new task item to the list.
+## Quick Start
+Both `tn` and `termnotes` work. The first run creates today’s file if missing.
 
 ```bash
-tn t ship the feature
+# Add a task (shorthand for `tn task`)
+tn t Ship the new feature
 
-# Output:
-# ## Tasks
-# 
-# [ ] ship the feature
-#
-# ## Notes
-#
-```
+# Add a note (shorthand for `tn note`)
+tn n ChatGPT said I was absolutely right
 
-### Create a note
-Use the `note` action or shorthand `n` to append a new note to the list.
-
-```bash
-tn n a random thought
-
-# Output:
-# ## Tasks
-# 
-# [ ] ship the feature
-#
-# ## Notes
-#
-# - a random thought
-```
-
-### Toggle a task
-Use the `x` action to toggle a task's completion status.
-
-```bash
+# Mark task as complete (starting at 1)
 tn x 1
 
-# Output:
-# ## Tasks
-# 
-# [x] ship the feature
-#
-# ## Notes
-#
-# - a random thought
+# View today's notes
+tn
+```
+Output:
+```md
+## Tasks
+
+[x] Ship the new feature
+
+## Notes
+
+- ChatGPT said I was absolutely right
+
 ```
 
-## Setup (dev)
+## Commands
+| Command | Shorthand | Description |
+|---------|-----------|-------------|
+| `tn` | — | View today’s note |
+| `tn task [text]` | `tn t [text]` | Append a task |
+| `tn note [text]` | `tn n [text]` | Append a note bullet |
+| `tn x <number>` | — | Toggle task status at 1‑based index |
+| `tn --help` | — | Show help / usage |
 
-Install dependencies and run the dev script
+## Features
+- **Focus on Today:** Always opens today’s Daily Note. A new file is created on first use each day.
+  - Planned feature for importing previous day uncompleted tasks and viewing historical notes
+- **Viewer auto-detect:** Prefers `glow`, then `bat`, else falls back to `cat`.
+- **Location:** Default location: `~/.termnotes/notes/YYYY-MM-DD.md` (configurable in a future release).
 
+
+## Uninstall
+
+Use the uninstall command from the package manager used to install the CLI.
+
+Manually delete `~/.termnotes`.
+
+
+## Development
 ```bash
 bun install
 bun dev
 ```
+
+---
+## Planned Enhancements
+- Configurable notes directory
+- Task carry‑over from previous day
+- Archiving and search
