@@ -13,7 +13,11 @@ export class Config extends Effect.Service<Config>()('tn/Config', {
 }) {}
 
 const getNotesDir = Effect.fn('getNotesDir')(function* () {
-	// TODO: implement configuring this
+	// Use a separate local directory when running tests to avoid polluting real notes.
+	const env = process.env.NODE_ENV
+	if (env === 'test') {
+		return yield* Effect.succeed(`${process.cwd()}/.termnotes-test/notes`)
+	}
 	return yield* Effect.succeed(`${homedir()}/.termnotes/notes`)
 })()
 

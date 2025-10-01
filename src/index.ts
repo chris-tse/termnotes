@@ -123,12 +123,17 @@ const cli = Command.run(command, {
 })
 
 const AppLayer = Layer.mergeAll(BunContext.layer, Config.Default)
+const enableDevTools = process.env.TERMNOTES_DEVTOOLS === '1'
 const DevToolsLive = DevTools.layerWebSocket().pipe(Layer.provide(BunSocket.layerWebSocketConstructor))
 
-cli(normalizeBunArgv()).pipe(
+let program = cli(normalizeBunArgv()).pipe(
 	Effect.provide(AppLayer),
-	Effect.provide(DevToolsLive),
 	Effect.provide(CliConfig.layer({ showBuiltIns: false })),
 	Effect.tapErrorCause((cause) => Console.warn(`Error: ${String(cause)}`)),
-	BunRuntime.runMain,
 )
+
+if (enableDevTools) {
+	program = program.pipe(Effect.provide(DevToolsLive))
+}
+
+program.pipe(BunRuntime.runMain)
