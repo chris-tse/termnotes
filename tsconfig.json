@@ -20,7 +20,8 @@
     "paths": {
       "@/lib/*": ["src/lib/*"]
     },
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "skipLibCheck": true
   },
   "plugins": [
     {

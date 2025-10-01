@@ -12,6 +12,7 @@
     "build": "rm -rf dist && rolldown src/index.ts --dir dist --minify",
     "dev": "bun src/index.ts",
     "fmt": "ultracite fix",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cli": "bun run src/index.ts --help"
@@ -50,12 +51,11 @@
     "@effect/language-service": "^0.36.0",
     "@effect/vitest": "^0.25.1",
     "@types/bun": "^1.2.22",
+    "@types/ws": "^8.18.1",
     "rolldown": "^1.0.0-beta.34",
     "ultracite": "5.4.5",
-    "vitest": "^3.2.4"
-  },
-  "peerDependencies": {
-    "typescript": "^5.9.2"
+    "vitest": "^3.2.4",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0",
