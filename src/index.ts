@@ -3,10 +3,10 @@ import { Console, Effect, Layer } from 'effect'
 import { Args, CliConfig, Command, HelpDoc } from '@effect/cli'
 import { DevTools } from '@effect/experimental'
 import { BunContext, BunRuntime, BunSocket } from '@effect/platform-bun'
-import { Config } from '@/lib/config'
-import { reduceDocument } from '@/lib/document'
-import { FileStore } from '@/lib/file-store'
-import { Viewer } from '@/lib/viewer'
+import { Config } from 'src/lib/config'
+import { reduceDocument } from 'src/lib/document'
+import { FileStore } from 'src/lib/file-store'
+import { Viewer } from 'src/lib/viewer'
 import packageInfo from '../package.json' with { type: 'json' }
 
 function normalizeBunArgv(): string[] {
