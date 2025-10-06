@@ -1,6 +1,6 @@
 {
   "name": "termnotes-cli",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Zero-config daily notes and tasks CLI for your terminal",
   "main": "dist/index.js",
   "bin": {
